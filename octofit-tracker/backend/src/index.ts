@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import { connectDatabase } from './database.js';
 
 // Import routes
 import usersRouter from './routes/users.js';
@@ -14,7 +14,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/octofit_db';
 
 // Environment-aware base URL for Codespaces
 const codespaceName = process.env.CODESPACE_NAME;
@@ -49,9 +48,8 @@ app.use((req, res) => {
 });
 
 // Connect to MongoDB
-mongoose.connect(MONGODB_URI)
+connectDatabase()
   .then(() => {
-    console.log('Connected to MongoDB (octofit_db)');
     app.listen(PORT, () => {
       console.log(`Server is running on ${baseUrl}`);
       console.log(`API endpoints available at ${baseUrl}/api`);
