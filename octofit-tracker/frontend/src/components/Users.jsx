@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 
-// Build API base URL with Codespaces support
-const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
-const API_BASE_URL = codespaceName
-  ? `https://${codespaceName}-8000.app.github.dev/api`
-  : 'http://localhost:8000/api';
-
 function Users() {
+  // Build API base URL with Codespaces support
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +23,10 @@ function Users() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/users`);
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/users`
+        : `http://localhost:8000/api/users`;
+      const response = await fetch(url);
       const data = await response.json();
       // Handle both array and paginated responses
       setUsers(Array.isArray(data) ? data : data.users || []);
@@ -42,7 +41,10 @@ function Users() {
     e.preventDefault();
     try {
       const goals = formData.goals.split(',').map(g => g.trim()).filter(Boolean);
-      const response = await fetch(`${API_BASE_URL}/users`, {
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/users`
+        : `http://localhost:8000/api/users`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, goals })
@@ -59,7 +61,10 @@ function Users() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${id}`, { method: 'DELETE' });
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/users/${id}`
+        : `http://localhost:8000/api/users/${id}`;
+      const response = await fetch(url, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete user');
       fetchUsers();
     } catch (err) {

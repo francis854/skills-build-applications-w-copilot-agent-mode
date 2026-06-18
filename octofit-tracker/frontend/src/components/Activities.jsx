@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 
-// Build API base URL with Codespaces support
-const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
-const API_BASE_URL = codespaceName
-  ? `https://${codespaceName}-8000.app.github.dev/api`
-  : 'http://localhost:8000/api';
-
 function Activities() {
+  // Build API base URL with Codespaces support
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  const API_BASE_URL = codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev/api`
+    : 'http://localhost:8000/api';
   const [activities, setActivities] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,9 +35,15 @@ function Activities() {
       if (filter.activityType) params.activityType = filter.activityType;
       
       const queryString = new URLSearchParams(params).toString();
+      const activitiesUrl = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/activities${queryString ? `?${queryString}` : ''}`
+        : `http://localhost:8000/api/activities${queryString ? `?${queryString}` : ''}`;
+      const usersUrl = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/users`
+        : `http://localhost:8000/api/users`;
       const [activitiesData, usersData] = await Promise.all([
-        fetch(`${API_BASE_URL}/activities${queryString ? `?${queryString}` : ''}`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/users`).then(r => r.json())
+        fetch(activitiesUrl).then(r => r.json()),
+        fetch(usersUrl).then(r => r.json())
       ]);
       // Handle both array and paginated responses
       setActivities(Array.isArray(activitiesData) ? activitiesData : activitiesData.activities || []);
@@ -60,7 +65,10 @@ function Activities() {
         calories: parseInt(formData.calories),
         points: parseInt(formData.points),
       };
-      const response = await fetch(`${API_BASE_URL}/activities`, {
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/activities`
+        : `http://localhost:8000/api/activities`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(activityData)
@@ -85,7 +93,10 @@ function Activities() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this activity?')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/activities/${id}`, { method: 'DELETE' });
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/activities/${id}`
+        : `http://localhost:8000/api/activities/${id}`;
+      const response = await fetch(url, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete activity');
       fetchData();
     } catch (err) {

@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 
-// Build API base URL with Codespaces support
-const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
-const API_BASE_URL = codespaceName
-  ? `https://${codespaceName}-8000.app.github.dev/api`
-  : 'http://localhost:8000/api';
-
 function Workouts() {
+  // Build API base URL with Codespaces support
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
   const [workouts, setWorkouts] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,9 +24,15 @@ function Workouts() {
       if (filter.activityType) params.activityType = filter.activityType;
       
       const queryString = new URLSearchParams(params).toString();
+      const workoutsUrl = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/workouts${queryString ? `?${queryString}` : ''}`
+        : `http://localhost:8000/api/workouts${queryString ? `?${queryString}` : ''}`;
+      const usersUrl = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/users`
+        : `http://localhost:8000/api/users`;
       const [workoutsData, usersData] = await Promise.all([
-        fetch(`${API_BASE_URL}/workouts${queryString ? `?${queryString}` : ''}`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/users`).then(r => r.json())
+        fetch(workoutsUrl).then(r => r.json()),
+        fetch(usersUrl).then(r => r.json())
       ]);
       // Handle both array and paginated responses
       setWorkouts(Array.isArray(workoutsData) ? workoutsData : workoutsData.workouts || []);
@@ -45,7 +47,10 @@ function Workouts() {
   const fetchSuggestions = async (userId) => {
     try {
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/workouts/suggestions/${userId}?limit=5`);
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/workouts/suggestions/${userId}?limit=5`
+        : `http://localhost:8000/api/workouts/suggestions/${userId}?limit=5`;
+      const response = await fetch(url);
       const data = await response.json();
       setSuggestions(data);
     } catch (err) {

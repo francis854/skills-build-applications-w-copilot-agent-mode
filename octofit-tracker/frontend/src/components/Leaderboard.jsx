@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 
-// Build API base URL with Codespaces support
-const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
-const API_BASE_URL = codespaceName
-  ? `https://${codespaceName}-8000.app.github.dev/api`
-  : 'http://localhost:8000/api';
-
 function Leaderboard() {
+  // Build API base URL with Codespaces support
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
   const [leaderboard, setLeaderboard] = useState([]);
   const [teamLeaderboard, setTeamLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,13 +21,19 @@ function Leaderboard() {
       
       if (view === 'users') {
         const queryString = new URLSearchParams({ period, limit: 20 }).toString();
-        const response = await fetch(`${API_BASE_URL}/leaderboard?${queryString}`);
+        const url = codespaceName
+          ? `https://${codespaceName}-8000.app.github.dev/api/leaderboard?${queryString}`
+          : `http://localhost:8000/api/leaderboard?${queryString}`;
+        const response = await fetch(url);
         const data = await response.json();
         // Handle both array and paginated responses
         setLeaderboard(Array.isArray(data) ? data : data.leaderboard || []);
       } else {
         const queryString = new URLSearchParams({ limit: 20 }).toString();
-        const response = await fetch(`${API_BASE_URL}/leaderboard/teams?${queryString}`);
+        const url = codespaceName
+          ? `https://${codespaceName}-8000.app.github.dev/api/leaderboard/teams?${queryString}`
+          : `http://localhost:8000/api/leaderboard/teams?${queryString}`;
+        const response = await fetch(url);
         const data = await response.json();
         // Handle both array and paginated responses
         setTeamLeaderboard(Array.isArray(data) ? data : data.leaderboard || []);

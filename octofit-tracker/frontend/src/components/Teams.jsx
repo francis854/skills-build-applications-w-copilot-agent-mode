@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 
-// Build API base URL with Codespaces support
-const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
-const API_BASE_URL = codespaceName
-  ? `https://${codespaceName}-8000.app.github.dev/api`
-  : 'http://localhost:8000/api';
-
 function Teams() {
+  // Build API base URL with Codespaces support
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
   const [teams, setTeams] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +22,15 @@ function Teams() {
     try {
       setLoading(true);
       setError(null);
+      const teamsUrl = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/teams`
+        : `http://localhost:8000/api/teams`;
+      const usersUrl = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/users`
+        : `http://localhost:8000/api/users`;
       const [teamsData, usersData] = await Promise.all([
-        fetch(`${API_BASE_URL}/teams`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/users`).then(r => r.json())
+        fetch(teamsUrl).then(r => r.json()),
+        fetch(usersUrl).then(r => r.json())
       ]);
       // Handle both array and paginated responses
       setTeams(Array.isArray(teamsData) ? teamsData : teamsData.teams || []);
@@ -43,7 +45,10 @@ function Teams() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/teams`, {
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/teams`
+        : `http://localhost:8000/api/teams`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -60,7 +65,10 @@ function Teams() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this team?')) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/teams/${id}`, { method: 'DELETE' });
+      const url = codespaceName
+        ? `https://${codespaceName}-8000.app.github.dev/api/teams/${id}`
+        : `http://localhost:8000/api/teams/${id}`;
+      const response = await fetch(url, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete team');
       fetchData();
     } catch (err) {
