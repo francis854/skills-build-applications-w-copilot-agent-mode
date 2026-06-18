@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { User, Team, Activity, Workout } from './models/index.js';
+import { User, Team, Activity, Workout } from '../models/index.js';
 
 dotenv.config();
 
 /**
- * Database seed script for OctoFit Tracker
- * Populates the database with test data including users, teams, activities, and workouts
+ * Seed the octofit_db database with test data
  */
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/octofit_db';
