@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api';
+
+// Build API base URL with Codespaces support
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+const API_BASE_URL = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : 'http://localhost:8000/api';
 
 function Activities() {
   const [activities, setActivities] = useState([]);
@@ -30,9 +35,10 @@ function Activities() {
       if (filter.userId) params.userId = filter.userId;
       if (filter.activityType) params.activityType = filter.activityType;
       
+      const queryString = new URLSearchParams(params).toString();
       const [activitiesData, usersData] = await Promise.all([
-        api.activities.getAll(params),
-        api.users.getAll()
+        fetch(`${API_BASE_URL}/activities${queryString ? `?${queryString}` : ''}`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/users`).then(r => r.json())
       ]);
       // Handle both array and paginated responses
       setActivities(Array.isArray(activitiesData) ? activitiesData : activitiesData.activities || []);
@@ -54,7 +60,12 @@ function Activities() {
         calories: parseInt(formData.calories),
         points: parseInt(formData.points),
       };
-      await api.activities.create(activityData);
+      const response = await fetch(`${API_BASE_URL}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(activityData)
+      });
+      if (!response.ok) throw new Error('Failed to create activity');
       setShowForm(false);
       setFormData({
         userId: '',
@@ -74,7 +85,8 @@ function Activities() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this activity?')) return;
     try {
-      await api.activities.delete(id);
+      const response = await fetch(`${API_BASE_URL}/activities/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete activity');
       fetchData();
     } catch (err) {
       setError(err.message);

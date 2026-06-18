@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api';
+
+// Build API base URL with Codespaces support
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+const API_BASE_URL = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : 'http://localhost:8000/api';
 
 function Teams() {
   const [teams, setTeams] = useState([]);
@@ -22,8 +27,8 @@ function Teams() {
       setLoading(true);
       setError(null);
       const [teamsData, usersData] = await Promise.all([
-        api.teams.getAll(),
-        api.users.getAll()
+        fetch(`${API_BASE_URL}/teams`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/users`).then(r => r.json())
       ]);
       // Handle both array and paginated responses
       setTeams(Array.isArray(teamsData) ? teamsData : teamsData.teams || []);
@@ -38,7 +43,12 @@ function Teams() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.teams.create(formData);
+      const response = await fetch(`${API_BASE_URL}/teams`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (!response.ok) throw new Error('Failed to create team');
       setShowForm(false);
       setFormData({ name: '', description: '', captain: '' });
       fetchData();
@@ -50,7 +60,8 @@ function Teams() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this team?')) return;
     try {
-      await api.teams.delete(id);
+      const response = await fetch(`${API_BASE_URL}/teams/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete team');
       fetchData();
     } catch (err) {
       setError(err.message);

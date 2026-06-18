@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api';
+
+// Build API base URL with Codespaces support
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+const API_BASE_URL = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : 'http://localhost:8000/api';
 
 function Users() {
   const [users, setUsers] = useState([]);
@@ -22,7 +27,8 @@ function Users() {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.users.getAll();
+      const response = await fetch(`${API_BASE_URL}/users`);
+      const data = await response.json();
       // Handle both array and paginated responses
       setUsers(Array.isArray(data) ? data : data.users || []);
     } catch (err) {
@@ -36,7 +42,12 @@ function Users() {
     e.preventDefault();
     try {
       const goals = formData.goals.split(',').map(g => g.trim()).filter(Boolean);
-      await api.users.create({ ...formData, goals });
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, goals })
+      });
+      if (!response.ok) throw new Error('Failed to create user');
       setShowForm(false);
       setFormData({ username: '', email: '', password: '', fitnessLevel: 'beginner', goals: '' });
       fetchUsers();
@@ -48,7 +59,8 @@ function Users() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await api.users.delete(id);
+      const response = await fetch(`${API_BASE_URL}/users/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete user');
       fetchUsers();
     } catch (err) {
       setError(err.message);

@@ -4,8 +4,13 @@ import Teams from './components/Teams';
 import Activities from './components/Activities';
 import Leaderboard from './components/Leaderboard';
 import Workouts from './components/Workouts';
-import { API_BASE_URL } from './api';
 import './App.css';
+
+// Build API base URL with Codespaces support
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+const API_BASE_URL = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : 'http://localhost:8000/api';
 
 function App() {
   return (

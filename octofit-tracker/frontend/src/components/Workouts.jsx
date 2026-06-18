@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api';
+
+// Build API base URL with Codespaces support
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+const API_BASE_URL = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : 'http://localhost:8000/api';
 
 function Workouts() {
   const [workouts, setWorkouts] = useState([]);
@@ -22,9 +27,10 @@ function Workouts() {
       if (filter.difficulty) params.difficulty = filter.difficulty;
       if (filter.activityType) params.activityType = filter.activityType;
       
+      const queryString = new URLSearchParams(params).toString();
       const [workoutsData, usersData] = await Promise.all([
-        api.workouts.getAll(params),
-        api.users.getAll()
+        fetch(`${API_BASE_URL}/workouts${queryString ? `?${queryString}` : ''}`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/users`).then(r => r.json())
       ]);
       // Handle both array and paginated responses
       setWorkouts(Array.isArray(workoutsData) ? workoutsData : workoutsData.workouts || []);
@@ -39,7 +45,8 @@ function Workouts() {
   const fetchSuggestions = async (userId) => {
     try {
       setError(null);
-      const data = await api.workouts.getSuggestions(userId, 5);
+      const response = await fetch(`${API_BASE_URL}/workouts/suggestions/${userId}?limit=5`);
+      const data = await response.json();
       setSuggestions(data);
     } catch (err) {
       setError(err.message);

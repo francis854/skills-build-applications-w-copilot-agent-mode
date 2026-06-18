@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api';
+
+// Build API base URL with Codespaces support
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+const API_BASE_URL = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : 'http://localhost:8000/api';
 
 function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -19,11 +24,15 @@ function Leaderboard() {
       setError(null);
       
       if (view === 'users') {
-        const data = await api.leaderboard.get({ period, limit: 20 });
+        const queryString = new URLSearchParams({ period, limit: 20 }).toString();
+        const response = await fetch(`${API_BASE_URL}/leaderboard?${queryString}`);
+        const data = await response.json();
         // Handle both array and paginated responses
         setLeaderboard(Array.isArray(data) ? data : data.leaderboard || []);
       } else {
-        const data = await api.leaderboard.getTeams({ limit: 20 });
+        const queryString = new URLSearchParams({ limit: 20 }).toString();
+        const response = await fetch(`${API_BASE_URL}/leaderboard/teams?${queryString}`);
+        const data = await response.json();
         // Handle both array and paginated responses
         setTeamLeaderboard(Array.isArray(data) ? data : data.leaderboard || []);
       }
